@@ -1,58 +1,88 @@
+import Link from "next/link";
+
 const categories = [
   {
+    number: "01",
     name: "Men",
-    description: "Explore men's fashion",
+    description: "Streetwear, essentials & everyday fits",
+    href: "/men",
   },
   {
+    number: "02",
     name: "Women",
-    description: "Discover women's fashion",
+    description: "Modern silhouettes & statement pieces",
+    href: "/women",
   },
   {
+    number: "03",
     name: "Footwear",
-    description: "Step into your style",
+    description: "Clean sneakers & everyday essentials",
+    href: "/search?category=Footwear",
   },
   {
+    number: "04",
     name: "Accessories",
-    description: "Complete your look",
+    description: "The details that complete the fit",
+    href: "/search?category=Accessories",
   },
 ];
 
 export default function Categories() {
   return (
-    <section className="bg-white px-8 py-20">
+    <section className="bg-white px-6 py-24 sm:px-8 lg:py-32">
       <div className="mx-auto max-w-7xl">
 
-        <div className="mb-10">
-          <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
-            Shop by Category
-          </p>
+        {/* Section Header */}
+        <div className="flex flex-col justify-between gap-6 border-b border-black pb-8 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">
+              Explore FashionStreet
+            </p>
 
-          <h2 className="mt-2 text-3xl font-bold text-black md:text-4xl">
-            Find Your Style
-          </h2>
+            <h2 className="mt-3 text-4xl font-black tracking-[-0.04em] text-black sm:text-5xl lg:text-6xl">
+              SHOP BY
+              <br />
+              CATEGORY.
+            </h2>
+          </div>
+
+          <p className="max-w-sm text-sm leading-6 text-gray-500">
+            Build your rotation with carefully selected pieces
+            designed for modern everyday style.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-
+        {/* Categories */}
+        <div className="mt-10">
           {categories.map((category) => (
-            <div
+            <Link
               key={category.name}
-              className="group cursor-pointer border border-gray-200 p-8 transition hover:bg-black"
+              href={category.href}
+              className="group flex items-center justify-between border-b border-gray-200 py-7 transition hover:px-4 hover:bg-black"
             >
-              <h3 className="text-2xl font-bold text-black transition group-hover:text-white">
-                {category.name}
-              </h3>
+              <div className="flex items-center gap-6 sm:gap-10">
 
-              <p className="mt-2 text-gray-500 transition group-hover:text-gray-300">
-                {category.description}
-              </p>
+                <span className="text-xs font-semibold tracking-widest text-gray-400 transition group-hover:text-gray-500">
+                  {category.number}
+                </span>
 
-              <p className="mt-8 text-sm font-semibold text-black transition group-hover:text-white">
-                Explore →
-              </p>
-            </div>
+                <div>
+                  <h3 className="text-2xl font-bold tracking-tight text-black transition group-hover:text-white sm:text-3xl">
+                    {category.name}
+                  </h3>
+
+                  <p className="mt-1 text-sm text-gray-500 transition group-hover:text-gray-400">
+                    {category.description}
+                  </p>
+                </div>
+
+              </div>
+
+              <span className="text-2xl text-black transition group-hover:translate-x-2 group-hover:text-white">
+                →
+              </span>
+            </Link>
           ))}
-
         </div>
 
       </div>

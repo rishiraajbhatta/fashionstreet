@@ -1,42 +1,125 @@
-type Product = {
-  name: string;
-  category: string;
-  price: number;
-  originalPrice: number;
-  rating: number;
-};
+"use client";
 
-export default function ProductCard({ product }: { product: Product }) {
+import Link from "next/link";
+import { useState } from "react";
+import type { Product } from "@/data/products";
+import { useCart } from "@/components/CartContext";
+import { useWishlist } from "@/components/WishlistContext";
+
+export default function ProductCard({
+  product,
+}: {
+  product: Product;
+}) {
+  const { addToCart } = useCart();
+
+  const {
+    addToWishlist,
+    removeFromWishlist,
+    isInWishlist,
+  } = useWishlist();
+
+  const [added, setAdded] = useState(false);
+
+  const wishlisted = isInWishlist(product.id);
+
   const discount = Math.round(
-    ((product.originalPrice - product.price) / product.originalPrice) * 100
+    ((product.originalPrice - product.price) /
+      product.originalPrice) *
+      100
   );
 
+  const handleAddToCart = () => {
+    addToCart(product);
+    setAdded(true);
+
+    setTimeout(() => {
+      setAdded(false);
+    }, 1500);
+  };
+
+  const handleWishlist = () => {
+    if (wishlisted) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
+  };
+
   return (
-    <div className="group">
+    <article className="group">
 
-      {/* Product Image Placeholder */}
-      <div className="relative flex h-80 items-center justify-center bg-gray-100">
-        <span className="text-gray-400">
-          Product Image
-        </span>
+      {/* Product Image */}
+      <div className="relative overflow-hidden bg-gray-100">
 
-        <span className="absolute left-3 top-3 bg-black px-3 py-1 text-xs font-semibold text-white">
-          {discount}% OFF
-        </span>
+        <Link href={`/products/${product.id}`}>
+          <div className="relative flex h-[420px] cursor-pointer items-center justify-center transition duration-500 group-hover:bg-gray-200">
+
+            {product.image ? (
+              <img
+                src={product.image}
+                alt={product.name}
+                className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+              />
+            ) : (
+              <span className="text-sm uppercase tracking-widest text-gray-400">
+                Product Image
+              </span>
+            )}
+
+            {/* Discount */}
+            <span className="absolute left-4 top-4 bg-black px-3 py-2 text-xs font-bold tracking-wide text-white">
+              -{discount}%
+            </span>
+          </div>
+        </Link>
+
+        {/* Wishlist */}
+        <button
+          type="button"
+          onClick={handleWishlist}
+          aria-label={
+            wishlisted
+              ? "Remove from wishlist"
+              : "Add to wishlist"
+          }
+          className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-xl text-black shadow-sm transition duration-300 hover:scale-110"
+        >
+          {wishlisted ? "♥" : "♡"}
+        </button>
+
+        {/* Quick Shop */}
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          className="absolute bottom-0 left-0 right-0 translate-y-full bg-black py-4 text-sm font-bold uppercase tracking-wider text-white transition duration-300 group-hover:translate-y-0"
+        >
+          {added ? "✓ Added to Cart" : "Quick Add"}
+        </button>
       </div>
 
-      {/* Product Information */}
-      <div className="pt-4">
+      {/* Product Info */}
+      <div className="pt-5">
 
-        <p className="text-sm text-gray-500">
-          {product.category}
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+              {product.category}
+            </p>
 
-        <h3 className="mt-1 text-lg font-semibold text-black">
-          {product.name}
-        </h3>
+            <Link href={`/products/${product.id}`}>
+              <h3 className="mt-2 text-lg font-semibold tracking-tight text-black hover:underline">
+                {product.name}
+              </h3>
+            </Link>
+          </div>
 
-        <div className="mt-2 flex items-center gap-2">
+          <span className="shrink-0 text-sm">
+            ⭐ {product.rating}
+          </span>
+        </div>
+
+        <div className="mt-3 flex items-center gap-3">
           <span className="text-lg font-bold text-black">
             ₹{product.price}
           </span>
@@ -46,22 +129,7 @@ export default function ProductCard({ product }: { product: Product }) {
           </span>
         </div>
 
-        <div className="mt-2 flex items-center gap-2">
-          <span className="text-sm">
-            ⭐ {product.rating}
-          </span>
-
-          <span className="text-sm text-gray-500">
-            Rating
-          </span>
-        </div>
-
-        <button className="mt-4 w-full bg-black py-3 font-semibold text-white transition hover:bg-gray-800">
-          Add to Cart
-        </button>
-
       </div>
-
-    </div>
+    </article>
   );
 }
