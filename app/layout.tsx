@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
@@ -21,11 +22,13 @@ export const metadata: Metadata = {
   description: "Discover the latest fashion at FashionStreet.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
     <html
       lang="en"
@@ -34,10 +37,8 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <CartProvider>
           <WishlistProvider>
-            <Navbar />
-
+            <Navbar user={session?.user ?? null} />
             {children}
-
             <Footer />
           </WishlistProvider>
         </CartProvider>

@@ -5,7 +5,17 @@ import Link from "next/link";
 import { useCart } from "@/components/CartContext";
 import { useWishlist } from "@/components/WishlistContext";
 
-export default function Navbar() {
+type NavbarUser = {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+};
+
+export default function Navbar({
+  user,
+}: {
+  user: NavbarUser | null;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const { cartItems } = useCart();
@@ -18,10 +28,11 @@ export default function Navbar() {
 
   const wishlistCount = wishlistItems.length;
 
+  const accountLabel = user?.name || "My Account";
+
   return (
     <nav className="border-b bg-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-
         {/* Logo */}
         <Link
           href="/"
@@ -63,7 +74,6 @@ export default function Navbar() {
 
         {/* Desktop Actions */}
         <div className="hidden items-center gap-6 md:flex">
-
           <Link
             href="/search"
             className="text-sm font-medium text-black hover:text-gray-500"
@@ -95,20 +105,30 @@ export default function Navbar() {
             )}
           </Link>
 
+          {/* Account */}
           <Link
             href="/account"
-            className="text-sm font-medium text-black hover:text-gray-500"
+            className="flex items-center gap-2 text-sm font-medium text-black hover:text-gray-500"
           >
-            Account
-          </Link>
+            {user?.image ? (
+              <img
+                src={user.image}
+                alt=""
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            ) : null}
 
+            <span>{user ? accountLabel : "Sign In"}</span>
+          </Link>
         </div>
 
         {/* Mobile Menu Button */}
         <button
+          type="button"
           onClick={() => setMenuOpen(!menuOpen)}
           className="text-2xl text-black md:hidden"
           aria-label="Toggle menu"
+          aria-expanded={menuOpen}
         >
           {menuOpen ? "✕" : "☰"}
         </button>
@@ -118,7 +138,6 @@ export default function Navbar() {
       {menuOpen && (
         <div className="border-t px-6 py-6 md:hidden">
           <div className="flex flex-col gap-5">
-
             <Link
               href="/"
               className="font-medium text-black"
@@ -151,11 +170,10 @@ export default function Navbar() {
               New Arrivals
             </Link>
 
-            <div className="border-t pt-5">
-
+            <div className="flex flex-col gap-5 border-t pt-5">
               <Link
                 href="/search"
-                className="mr-6 font-medium text-black"
+                className="font-medium text-black"
                 onClick={() => setMenuOpen(false)}
               >
                 Search
@@ -163,7 +181,7 @@ export default function Navbar() {
 
               <Link
                 href="/wishlist"
-                className="mr-6 font-medium text-black"
+                className="font-medium text-black"
                 onClick={() => setMenuOpen(false)}
               >
                 Wishlist
@@ -176,7 +194,7 @@ export default function Navbar() {
 
               <Link
                 href="/cart"
-                className="mr-6 font-medium text-black"
+                className="font-medium text-black"
                 onClick={() => setMenuOpen(false)}
               >
                 Cart
@@ -189,14 +207,20 @@ export default function Navbar() {
 
               <Link
                 href="/account"
-                className="font-medium text-black"
+                className="flex items-center gap-3 font-medium text-black"
                 onClick={() => setMenuOpen(false)}
               >
-                Account
+                {user?.image ? (
+                  <img
+                    src={user.image}
+                    alt=""
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                ) : null}
+
+                <span>{user ? accountLabel : "Sign In"}</span>
               </Link>
-
             </div>
-
           </div>
         </div>
       )}
