@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { products } from "@/data/products";
+import ProductCard from "@/components/ProductCard";
+import ObsidianFlow from "@/components/ObsidianFlow";
 
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -9,95 +11,123 @@ export default function SearchPage() {
   const filteredProducts = products.filter((product) =>
     `${product.name} ${product.category} ${product.gender}`
       .toLowerCase()
-      .includes(searchTerm.toLowerCase())
+      .includes(searchTerm.toLowerCase().trim())
   );
 
   return (
-    <main className="min-h-screen bg-white px-8 py-20">
-      <div className="mx-auto max-w-7xl">
+    <main className="relative isolate min-h-screen overflow-hidden bg-[#070707] text-white">
+      {/* Animated Obsidian Flow background */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <ObsidianFlow />
+      </div>
 
-        <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
-          FashionStreet
-        </p>
+      {/* Dark overlay */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-black/30" />
 
-        <h1 className="mt-2 text-4xl font-bold text-black md:text-5xl">
-          Search
-        </h1>
+      <div className="mx-auto max-w-7xl px-6 py-20 md:px-8 md:py-28">
+        {/* Page heading */}
+        <div className="border-b border-white/15 pb-10">
+          <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+            FashionStreet / Discover
+          </p>
 
-        {/* Search Bar */}
-        <div className="mt-8 flex max-w-2xl">
+          <h1 className="mt-5 font-serif text-5xl font-medium tracking-tight md:text-7xl">
+            Find Your Style<span className="text-white/40">.</span>
+          </h1>
+
+          <p className="mt-6 max-w-xl text-sm leading-7 text-white/60 md:text-base">
+            Search the FashionStreet collection and discover pieces that
+            express your individuality.
+          </p>
+        </div>
+
+        {/* Search bar */}
+        <form
+          className="mt-10 flex max-w-3xl"
+          onSubmit={(event) => event.preventDefault()}
+          role="search"
+        >
+          <label htmlFor="product-search" className="sr-only">
+            Search products
+          </label>
+
           <input
-            type="text"
+            id="product-search"
+            type="search"
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search for products..."
-            className="w-full border border-gray-300 px-5 py-4 text-black outline-none focus:border-black"
+            placeholder="Search clothing, footwear, accessories..."
+            className="min-w-0 flex-1 border border-white/20 bg-white/[0.04] px-5 py-4 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-white/60"
           />
 
           <button
-            type="button"
-            className="bg-black px-8 py-4 font-semibold text-white"
+            type="submit"
+            className="border border-white bg-white px-6 py-4 text-xs uppercase tracking-[0.2em] text-black transition-colors hover:bg-transparent hover:text-white sm:px-8"
           >
             Search
           </button>
-        </div>
+        </form>
 
-        {/* Search Results */}
-        <div className="mt-12">
+        {/* Search results heading */}
+        <section className="mt-16">
+          <div className="flex items-end justify-between gap-4 border-b border-white/15 pb-5">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-white/40">
+                The Selection
+              </p>
 
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-black">
-              {searchTerm ? "Search Results" : "All Products"}
-            </h2>
+              <h2 className="mt-3 font-serif text-3xl font-medium md:text-4xl">
+                {searchTerm.trim() ? "Search Results" : "Explore All"}
+              </h2>
+            </div>
 
-            <p className="text-sm text-gray-500">
-              {filteredProducts.length} products
+            <p className="shrink-0 text-xs uppercase tracking-[0.15em] text-white/45">
+              {filteredProducts.length}{" "}
+              {filteredProducts.length === 1 ? "Piece" : "Pieces"}
             </p>
           </div>
 
+          {/* Product grid */}
           {filteredProducts.length > 0 ? (
-            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-
-              {filteredProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="border border-gray-200 p-6"
-                >
-                  <div className="flex h-48 items-center justify-center bg-gray-100">
-                    <span className="text-gray-400">
-                      Product Image
-                    </span>
-                  </div>
-
-                  <p className="mt-4 text-sm text-gray-500">
-                    {product.category}
+            <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+              {filteredProducts.map((product, index) => (
+                <div key={product.id}>
+                  <p className="mb-3 text-[10px] uppercase tracking-[0.25em] text-white/35">
+                    Selection / {String(index + 1).padStart(2, "0")}
                   </p>
 
-                  <h3 className="mt-1 text-lg font-semibold text-black">
-                    {product.name}
-                  </h3>
-
-                  <p className="mt-2 font-bold text-black">
-                    ₹{product.price}
-                  </p>
+                  <ProductCard product={product} />
                 </div>
               ))}
-
             </div>
           ) : (
-            <div className="mt-6 border border-gray-200 p-10 text-center">
-              <h3 className="text-xl font-semibold text-black">
-                No products found
-              </h3>
-
-              <p className="mt-2 text-gray-500">
-                Try searching for something else.
+            <div className="mt-8 border border-white/15 px-6 py-20 text-center">
+              <p className="font-serif text-3xl text-white/85">
+                Nothing found.
               </p>
+
+              <p className="mt-4 text-sm leading-6 text-white/50">
+                We couldn't find a match. Try another product name,
+                category, or style.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => setSearchTerm("")}
+                className="mt-8 border border-white/30 px-6 py-3 text-[10px] uppercase tracking-[0.2em] transition-colors hover:bg-white hover:text-black"
+              >
+                View All Products
+              </button>
             </div>
           )}
+        </section>
 
+        {/* Bottom detail */}
+        <div className="mt-24 border-t border-white/15 pt-6">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-white/35">
+            FashionStreet — Define Your Own
+          </p>
         </div>
-
       </div>
     </main>
   );

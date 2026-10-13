@@ -1,4 +1,5 @@
 import ProductCard from "@/components/ProductCard";
+import ObsidianFlow from "@/components/ObsidianFlow";
 import { products } from "@/data/products";
 
 export default function NewArrivalsPage() {
@@ -11,33 +12,68 @@ export default function NewArrivalsPage() {
   );
 
   return (
-    <main className="min-h-screen bg-white px-8 py-20">
-      <div className="mx-auto max-w-7xl">
+    <main className="relative isolate min-h-screen overflow-hidden bg-[#070707] text-white">
+      {/* Animated background */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <ObsidianFlow />
+      </div>
 
-        <div className="mb-12">
-          <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
-            FashionStreet
+      {/* Dark overlay */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-black/30" />
+
+      <div className="mx-auto max-w-7xl px-6 py-20 md:px-8 md:py-28">
+        {/* Collection heading */}
+        <div className="mb-16 border-b border-white/15 pb-10">
+          <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+            FashionStreet / The Latest
           </p>
 
-          <h1 className="mt-2 text-4xl font-bold text-black md:text-5xl">
-            New Arrivals
+          <h1 className="mt-5 font-serif text-5xl font-medium tracking-tight md:text-7xl">
+            New Arrivals<span className="text-white/40">.</span>
           </h1>
 
-          <p className="mt-4 max-w-xl text-gray-600">
-            Discover the latest additions to FashionStreet and refresh your
-            wardrobe with our newest styles.
+          <div className="mt-6 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <p className="max-w-xl text-sm leading-7 text-white/60 md:text-base">
+              The latest additions to FashionStreet. Discover fresh silhouettes,
+              refined essentials, and pieces made to stand apart.
+            </p>
+
+            <p className="text-xs uppercase tracking-[0.2em] text-white/45">
+              {newArrivals.length.toString().padStart(2, "0")} Pieces
+            </p>
+          </div>
+        </div>
+
+        {/* Products */}
+        {newArrivals.length > 0 ? (
+          <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+            {newArrivals.map((product, index) => (
+              <div key={product.id} className="relative">
+                <p className="mb-3 text-[10px] uppercase tracking-[0.25em] text-white/35">
+                  New / {String(index + 1).padStart(2, "0")}
+                </p>
+
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-24 text-center">
+            <p className="font-serif text-3xl text-white/80">
+              Something new is coming.
+            </p>
+            <p className="mt-3 text-sm text-white/45">
+              Check back soon for the latest additions.
+            </p>
+          </div>
+        )}
+
+        {/* Bottom detail */}
+        <div className="mt-24 border-t border-white/15 pt-6">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-white/35">
+            FashionStreet — Define Your Own
           </p>
         </div>
-
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {newArrivals.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-            />
-          ))}
-        </div>
-
       </div>
     </main>
   );

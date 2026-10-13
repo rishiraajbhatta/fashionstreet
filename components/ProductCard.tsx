@@ -23,11 +23,14 @@ export default function ProductCard({
 
   const wishlisted = isInWishlist(product.id);
 
-  const discount = Math.round(
-    ((product.originalPrice - product.price) /
-      product.originalPrice) *
-      100
-  );
+  const discount =
+    product.originalPrice > 0
+      ? Math.round(
+          ((product.originalPrice - product.price) /
+            product.originalPrice) *
+            100
+        )
+      : 0;
 
   const handleAddToCart = () => {
     addToCart(product);
@@ -47,88 +50,119 @@ export default function ProductCard({
   };
 
   return (
-    <article className="group">
-
+    <article className="group min-w-0">
       {/* Product Image */}
-      <div className="relative overflow-hidden bg-gray-100">
-
-        <Link href={`/products/${product.id}`}>
-          <div className="relative flex h-[420px] cursor-pointer items-center justify-center transition duration-500 group-hover:bg-gray-200">
-
-            {product.image ? (
-              <img
-                src={product.image}
-                alt={product.name}
-                className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-              />
-            ) : (
-              <span className="text-sm uppercase tracking-widest text-gray-400">
-                Product Image
+      <div className="relative isolate overflow-hidden bg-[#151515]">
+        <Link
+          href={`/products/${product.id}`}
+          aria-label={`View ${product.name}`}
+          className="relative block aspect-[3/4] overflow-hidden"
+        >
+          {product.image ? (
+            <img
+              src={product.image}
+              alt={product.name}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.045]"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-[#151515]">
+              <span className="font-serif text-2xl italic text-white/30">
+                FashionStreet
               </span>
-            )}
+            </div>
+          )}
 
-            {/* Discount */}
-            <span className="absolute left-4 top-4 bg-black px-3 py-2 text-xs font-bold tracking-wide text-white">
-              -{discount}%
+          {/* Image shading */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/5 opacity-70 transition-opacity duration-500 group-hover:opacity-100" />
+
+          {/* Discount badge */}
+          {discount > 0 && (
+            <span className="absolute left-3 top-3 border border-white/20 bg-black/75 px-3 py-2 text-[9px] uppercase tracking-[0.18em] text-white backdrop-blur-sm sm:left-4 sm:top-4">
+              {discount}% Off
             </span>
-          </div>
+          )}
+
+          {/* Product number */}
+          <span className="absolute bottom-3 left-3 text-[9px] uppercase tracking-[0.22em] text-white/70 sm:bottom-4 sm:left-4">
+            FS / {String(product.id).padStart(3, "0")}
+          </span>
         </Link>
 
-        {/* Wishlist */}
+        {/* Wishlist Button */}
         <button
           type="button"
           onClick={handleWishlist}
           aria-label={
-            wishlisted
-              ? "Remove from wishlist"
-              : "Add to wishlist"
+            wishlisted ? "Remove from wishlist" : "Add to wishlist"
           }
-          className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-xl text-black shadow-sm transition duration-300 hover:scale-110"
+          aria-pressed={wishlisted}
+          className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center border backdrop-blur-sm transition-all duration-300 sm:right-4 sm:top-4 ${
+            wishlisted
+              ? "border-white bg-white text-black"
+              : "border-white/30 bg-black/50 text-white hover:border-white hover:bg-white hover:text-black"
+          }`}
         >
-          {wishlisted ? "♥" : "♡"}
+          <span className="text-xl leading-none">
+            {wishlisted ? "♥" : "♡"}
+          </span>
         </button>
 
-        {/* Quick Shop */}
+        {/* Quick Add */}
         <button
           type="button"
           onClick={handleAddToCart}
-          className="absolute bottom-0 left-0 right-0 translate-y-full bg-black py-4 text-sm font-bold uppercase tracking-wider text-white transition duration-300 group-hover:translate-y-0"
+          className={`absolute bottom-0 left-0 right-0 flex translate-y-0 items-center justify-between border-t border-white/15 px-4 py-4 text-[9px] uppercase tracking-[0.2em] transition-all duration-300 sm:translate-y-full sm:group-hover:translate-y-0 ${
+            added
+              ? "bg-white text-black"
+              : "bg-black/90 text-white hover:bg-white hover:text-black"
+          }`}
         >
-          {added ? "✓ Added to Cart" : "Quick Add"}
+          <span>{added ? "Added to Bag" : "Add to Bag"}</span>
+          <span className="text-base">{added ? "✓" : "↗"}</span>
         </button>
       </div>
 
-      {/* Product Info */}
-      <div className="pt-5">
-
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+      {/* Product Details */}
+      <div className="pt-4 sm:pt-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[9px] uppercase tracking-[0.22em] text-white/40">
               {product.category}
             </p>
 
             <Link href={`/products/${product.id}`}>
-              <h3 className="mt-2 text-lg font-semibold tracking-tight text-black hover:underline">
+              <h3 className="mt-2 font-serif text-lg font-normal leading-snug tracking-wide text-[#e8e5df] transition-colors duration-300 group-hover:text-white sm:text-xl">
                 {product.name}
               </h3>
             </Link>
           </div>
 
-          <span className="shrink-0 text-sm">
-            ⭐ {product.rating}
+          <span
+            className="shrink-0 pt-1 text-[10px] text-white/50"
+            aria-label={`Rating ${product.rating} out of 5`}
+          >
+            ★ {product.rating}
           </span>
         </div>
 
-        <div className="mt-3 flex items-center gap-3">
-          <span className="text-lg font-bold text-black">
-            ₹{product.price}
+        {/* Pricing */}
+        <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="text-sm font-medium tracking-wide text-[#e8e5df]">
+            ₹{product.price.toLocaleString("en-IN")}
           </span>
 
-          <span className="text-sm text-gray-400 line-through">
-            ₹{product.originalPrice}
-          </span>
+          {product.originalPrice > product.price && (
+            <span className="text-xs text-white/35 line-through">
+              ₹{product.originalPrice.toLocaleString("en-IN")}
+            </span>
+          )}
         </div>
 
+        {/* Editorial divider */}
+        <div className="mt-5 h-px w-full bg-white/10">
+          <div className="h-px w-0 bg-white/70 transition-all duration-500 group-hover:w-full" />
+        </div>
       </div>
     </article>
   );
