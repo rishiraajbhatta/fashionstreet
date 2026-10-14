@@ -4,10 +4,8 @@ export default function Footer() {
   return (
     <footer className="bg-black px-6 py-16 text-white sm:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
-
         {/* Main Footer */}
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
-
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link
@@ -79,25 +77,40 @@ export default function Footer() {
             </h3>
 
             <div className="mt-6 flex flex-col gap-4 text-sm">
-              <span className="text-gray-300">
+              <Link
+                href="/contact"
+                className="w-fit text-gray-300 transition hover:text-white"
+              >
                 Contact Us
-              </span>
+              </Link>
 
-              <span className="text-gray-300">
-                Shipping & Delivery
-              </span>
+              <Link
+                href="/shipping"
+                className="w-fit text-gray-300 transition hover:text-white"
+              >
+                Shipping &amp; Delivery
+              </Link>
 
-              <span className="text-gray-300">
-                Returns & Refunds
-              </span>
+              <Link
+                href="/returns"
+                className="w-fit text-gray-300 transition hover:text-white"
+              >
+                Returns &amp; Refunds
+              </Link>
 
-              <span className="text-gray-300">
+              <Link
+                href="/track-order"
+                className="w-fit text-gray-300 transition hover:text-white"
+              >
                 Track Order
-              </span>
+              </Link>
 
-              <span className="text-gray-300">
+              <Link
+                href="/faqs"
+                className="w-fit text-gray-300 transition hover:text-white"
+              >
                 FAQs
-              </span>
+              </Link>
             </div>
           </div>
 
@@ -117,35 +130,52 @@ export default function Footer() {
               <input
                 type="email"
                 placeholder="Your email"
+                aria-label="Your email address"
                 className="w-full bg-transparent py-3 text-sm text-white outline-none placeholder:text-gray-600"
               />
 
               <button
                 type="button"
+                aria-label="Subscribe to newsletter"
                 className="px-2 text-sm font-bold text-white transition hover:text-gray-400"
               >
                 →
               </button>
             </div>
           </div>
-
         </div>
 
-        {/* Bottom */}
+        {/* Bottom Footer */}
         <div className="mt-16 flex flex-col gap-4 border-t border-gray-800 pt-8 sm:flex-row sm:items-center sm:justify-between">
-
           <p className="text-xs text-gray-600">
             © 2026 FashionStreet. All rights reserved.
           </p>
 
           <div className="flex gap-6 text-xs uppercase tracking-widest text-gray-600">
-            <span>Instagram</span>
-            <span>Privacy</span>
-            <span>Terms</span>
+            <a
+              href="https://www.instagram.com/"
+              target="_blank"
+              rel="noreferrer"
+              className="transition hover:text-white"
+            >
+              Instagram
+            </a>
+
+            <Link
+              href="/privacy"
+              className="transition hover:text-white"
+            >
+              Privacy
+            </Link>
+
+            <Link
+              href="/terms"
+              className="transition hover:text-white"
+            >
+              Terms
+            </Link>
           </div>
-
         </div>
-
       </div>
     </footer>
   );
