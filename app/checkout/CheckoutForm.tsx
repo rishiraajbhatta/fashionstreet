@@ -1,311 +1,227 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Script from "next/script";
 import { useCart } from "@/components/CartContext";
+
+declare global {
+  interface Window {
+    Razorpay: new (options: Record<string, unknown>) => {
+      open: () => void;
+    };
+  }
+}
+
+type RazorpayResponse = {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+};
 
 export default function CheckoutForm() {
   const { cartItems } = useCart();
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    city: "",
-    state: "",
-    pincode: "",
-  });
-
-  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   const total = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
-  function handleChange(
-    event: React.ChangeEvent<HTMLInputElement>
-  ) {
-    setForm({
-      ...form,
-      [event.target.name]: event.target.value,
-    });
+  async function handlePayment() {
+    if (!cartItems.length) {
+      setMessage("Your cart is empty.");
+      return;
+    }
+
+    if (!window.Razorpay) {
+      setMessage("Payment system is loading. Please try again.");
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const orderResponse = await fetch("/api/payments/create-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: cartItems.map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+          })),
+        }),
+      });
+
+      const order = await orderResponse.json();
+
+      if (!orderResponse.ok) {
+        throw new Error(order.error || "Unable to create payment order.");
+      }
+
+      const razorpay = new window.Razorpay({
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.orderId,
+        name: "FashionStreet",
+        description: "FashionStreet test purchase",
+
+        handler: async (response: unknown) => {
+          try {
+            const payment = response as RazorpayResponse;
+
+            const verifyResponse = await fetch(
+              "/api/payments/verify-payment",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payment),
+              }
+            );
+
+            const result = await verifyResponse.json();
+
+            if (!verifyResponse.ok || !result.verified) {
+              setMessage(
+                result.error || "Payment verification failed."
+              );
+              return;
+            }
+
+            setMessage(
+              "Test payment verified successfully! Your order has not yet been saved to a database."
+            );
+          } catch {
+            setMessage("Unable to verify payment. Please try again.");
+          } finally {
+            setLoading(false);
+          }
+        },
+
+        modal: {
+          ondismiss: () => {
+            setLoading(false);
+            setMessage("Payment window closed.");
+          },
+        },
+      });
+
+      razorpay.open();
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while starting payment."
+      );
+      setLoading(false);
+    }
   }
-
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmitted(true);
-  }
-
-  if (cartItems.length === 0) {
-    return (
-      <main className="min-h-screen bg-white px-6 py-20">
-        <div className="mx-auto max-w-3xl text-center">
-          <h1 className="text-4xl font-bold text-black">
-            Your cart is empty
-          </h1>
-
-          <p className="mt-4 text-gray-600">
-            Add some products before proceeding to checkout.
-          </p>
-
-          <Link
-            href="/new-arrivals"
-            className="mt-8 inline-block bg-black px-6 py-3 font-semibold text-white hover:bg-gray-800"
-          >
-            Continue Shopping
-          </Link>
-        </div>
-      </main>
-    );
-  }
-
-  if (submitted) {
-    return (
-      <main className="min-h-screen bg-white px-6 py-20">
-        <div className="mx-auto max-w-2xl border border-gray-200 p-10 text-center">
-          <h1 className="text-3xl font-bold text-black">
-            Checkout Details Submitted!
-          </h1>
-
-          <p className="mt-4 text-gray-600">
-            Your checkout form is working. Order processing and
-            payment have not been implemented yet.
-          </p>
-
-          <Link
-            href="/cart"
-            className="mt-8 inline-block bg-black px-6 py-3 font-semibold text-white hover:bg-gray-800"
-          >
-            Return to Cart
-          </Link>
-        </div>
-      </main>
-    );
-  }
-
-  const inputClass =
-    "mt-2 w-full border border-gray-300 px-4 py-3 text-black outline-none focus:border-black";
 
   return (
-    <main className="min-h-screen bg-white px-6 py-16">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
-          FashionStreet
+    <>
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="afterInteractive"
+      />
+
+      <section className="mx-auto w-full max-w-2xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-400">
+          FashionStreet / Secure Checkout
         </p>
 
-        <h1 className="mt-2 text-4xl font-bold text-black md:text-5xl">
+        <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white">
           Checkout
         </h1>
 
-        <p className="mt-4 text-gray-600">
-          Enter your contact and delivery details.
+        <p className="mt-3 text-sm text-gray-400">
+          Review your selection before proceeding to payment.
         </p>
 
-        <form
-          onSubmit={handleSubmit}
-          className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-3"
-        >
-          <div className="space-y-8 lg:col-span-2">
-            <section className="border border-gray-200 p-6 sm:p-8">
-              <h2 className="text-2xl font-bold text-black">
-                Contact Information
-              </h2>
+        <div className="mt-8 border border-white/20 bg-white/[0.03] p-6 sm:p-8">
+          <h2 className="text-lg font-semibold text-white">
+            Order Summary
+          </h2>
 
-              <div className="mt-6">
-                <label htmlFor="name" className="font-medium text-black">
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  autoComplete="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  className={inputClass}
-                  required
-                />
-              </div>
+          {cartItems.length === 0 ? (
+            <p className="mt-5 text-sm text-gray-400">
+              Your cart is empty. Add some products before checking out.
+            </p>
+          ) : (
+            <>
+              <div className="mt-6 space-y-5">
+                {cartItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-start justify-between gap-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-white">
+                        {item.name}
+                      </p>
 
-              <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="email" className="font-medium text-black">
-                    Email Address
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    className={inputClass}
-                    required
-                  />
-                </div>
+                      <p className="mt-1 text-xs text-gray-400">
+                        Quantity: {item.quantity}
+                      </p>
+                    </div>
 
-                <div>
-                  <label htmlFor="phone" className="font-medium text-black">
-                    Phone Number
-                  </label>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    autoComplete="tel"
-                    pattern="[0-9]{10}"
-                    maxLength={10}
-                    value={form.phone}
-                    onChange={handleChange}
-                    className={inputClass}
-                    placeholder="10-digit mobile number"
-                    required
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section className="border border-gray-200 p-6 sm:p-8">
-              <h2 className="text-2xl font-bold text-black">
-                Shipping Address
-              </h2>
-
-              <div className="mt-6">
-                <label
-                  htmlFor="address"
-                  className="font-medium text-black"
-                >
-                  House No., Street and Area
-                </label>
-                <input
-                  id="address"
-                  name="address"
-                  autoComplete="street-address"
-                  value={form.address}
-                  onChange={handleChange}
-                  className={inputClass}
-                  required
-                />
-              </div>
-
-              <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="city" className="font-medium text-black">
-                    City
-                  </label>
-                  <input
-                    id="city"
-                    name="city"
-                    autoComplete="address-level2"
-                    value={form.city}
-                    onChange={handleChange}
-                    className={inputClass}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="state" className="font-medium text-black">
-                    State
-                  </label>
-                  <input
-                    id="state"
-                    name="state"
-                    autoComplete="address-level1"
-                    value={form.state}
-                    onChange={handleChange}
-                    className={inputClass}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6 sm:max-w-xs">
-                <label htmlFor="pincode" className="font-medium text-black">
-                  PIN Code
-                </label>
-                <input
-                  id="pincode"
-                  name="pincode"
-                  inputMode="numeric"
-                  autoComplete="postal-code"
-                  pattern="[0-9]{6}"
-                  maxLength={6}
-                  value={form.pincode}
-                  onChange={handleChange}
-                  className={inputClass}
-                  placeholder="6-digit PIN code"
-                  required
-                />
-              </div>
-            </section>
-          </div>
-
-          <aside className="h-fit border border-gray-200 p-6 sm:p-8">
-            <h2 className="text-2xl font-bold text-black">
-              Order Summary
-            </h2>
-
-            <div className="mt-6 space-y-4">
-              {cartItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex justify-between gap-4 text-sm"
-                >
-                  <div>
-                    <p className="font-medium text-black">{item.name}</p>
-                    <p className="mt-1 text-gray-500">
-                      Qty: {item.quantity}
+                    <p className="shrink-0 text-sm text-gray-200">
+                      ₹
+                      {(item.price * item.quantity).toLocaleString("en-IN")}
                     </p>
                   </div>
+                ))}
+              </div>
 
-                  <p className="font-semibold text-black">
-                    ₹{item.price * item.quantity}
-                  </p>
+              <div className="mt-7 border-t border-white/20 pt-5">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-base font-medium text-gray-300">
+                    Total
+                  </span>
+
+                  <span className="text-2xl font-semibold text-white">
+                    ₹{total.toLocaleString("en-IN")}
+                  </span>
                 </div>
-              ))}
-            </div>
-
-            <div className="mt-6 border-t border-gray-200 pt-4">
-              <div className="flex justify-between text-gray-600">
-                <span>Subtotal</span>
-                <span>₹{total}</span>
               </div>
 
-              <div className="mt-3 flex justify-between text-gray-600">
-                <span>Shipping</span>
-                <span>FREE</span>
-              </div>
+              <button
+                type="button"
+                onClick={handlePayment}
+                disabled={loading}
+                className="mt-7 w-full bg-white px-6 py-4 text-sm font-semibold uppercase tracking-widest text-black transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? "Processing..." : "Pay with Razorpay"}
+              </button>
 
-              <div className="mt-5 flex justify-between border-t border-gray-200 pt-5">
-                <span className="text-lg font-bold text-black">Total</span>
-                <span className="text-2xl font-bold text-black">
-                  ₹{total}
-                </span>
-              </div>
-            </div>
+              <p className="mt-4 text-center text-xs text-gray-500">
+                Secure payment checkout · Razorpay Test Mode
+              </p>
+            </>
+          )}
 
-            <button
-              type="submit"
-              className="mt-8 w-full bg-black px-6 py-4 font-semibold text-white transition hover:bg-gray-800"
+          {message && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mt-5 border border-white/20 px-4 py-3 text-sm text-gray-200"
             >
-              Place Order
-            </button>
+              {message}
+            </div>
+          )}
+        </div>
 
-            <p className="mt-4 text-center text-xs text-gray-500">
-              Payments and order processing will be added in a later step.
-            </p>
-
-            <Link
-              href="/cart"
-              className="mt-5 block text-center text-sm font-semibold text-gray-600 hover:text-black"
-            >
-              Return to Cart
-            </Link>
-          </aside>
-        </form>
-      </div>
-    </main>
+        <p className="mt-5 text-xs leading-6 text-gray-500">
+          Portfolio demonstration using Razorpay. Test payments only.
+          Orders are not yet persisted to the database.
+        </p>
+      </section>
+    </>
   );
 }
